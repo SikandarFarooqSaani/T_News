@@ -6,7 +6,7 @@ import gdown
 from transformers import GPT2Tokenizer, GPT2ForSequenceClassification
 
 # Model download settings
-MODEL_URL = "https://drive.google.com/uc?export=download&id=1RmZK1LAu2ufN35pouL1pAty7dCYja8mB"
+MODEL_URL = "https://drive.google.com/uc?export=download&id=10yPukQO7DvURZJ4ZqfWdaZHYEpYm_-4f"
 MODEL_DIR = "saved_model"
 MODEL_ZIP = "saved_model.zip"
 
