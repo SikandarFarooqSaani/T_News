@@ -1,39 +1,41 @@
-import os
 import streamlit as st
 import torch
-import zipfile
-import gdown
 from transformers import GPT2Tokenizer, GPT2ForSequenceClassification
 
-# Model download settings
-MODEL_URL = "https://drive.google.com/uc?export=download&id=10yPukQO7DvURZJ4ZqfWdaZHYEpYm_-4f"
-MODEL_DIR = "saved_model"
-MODEL_ZIP = "saved_model.zip"
+# Load the model from Hugging Face
+MODEL_NAME = "SikandarFarooqSaani/transformers"
 
-# Download and extract the model if not present
-if not os.path.exists(MODEL_DIR):
-    st.info("Downloading model... Please wait ⏳")
-    gdown.download(MODEL_URL, MODEL_ZIP, quiet=False)
-
-    # Extract model
-    with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
-        zip_ref.extractall(MODEL_DIR)
-
-    os.remove(MODEL_ZIP)
-    st.success("Model downloaded successfully ✅")
-
-# 🔴 **DEBUG: Print extracted files**
-st.write("Extracted Files:", os.listdir(MODEL_DIR))
-
-# 🔴 **DEBUG: Check if model.safetensors exists**
-if not os.path.exists(os.path.join(MODEL_DIR, "model.safetensors")):
-    st.error("❌ model.safetensors is missing! Check your ZIP file.")
-
-# Load the model and tokenizer
-try:
-    model = GPT2ForSequenceClassification.from_pretrained(MODEL_DIR)
-    tokenizer = GPT2Tokenizer.from_pretrained(MODEL_DIR)
+@st.cache_resource
+def load_model():
+    st.info("Loading model from Hugging Face... ⏳")
+    model = GPT2ForSequenceClassification.from_pretrained(MODEL_NAME)
+    tokenizer = GPT2Tokenizer.from_pretrained(MODEL_NAME)
     model.config.pad_token_id = tokenizer.pad_token_id
     st.success("Model loaded successfully ✅")
-except Exception as e:
-    st.error(f"❌ Model failed to load: {str(e)}")
+    return model, tokenizer
+
+# Load model once
+model, tokenizer = load_model()
+
+# Prediction function
+def predict_news(news_text):
+    inputs = tokenizer(news_text, truncation=True, padding="max_length", max_length=512, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model(**inputs)
+        logits = outputs.logits
+        prediction = torch.argmax(logits, dim=1).item()
+    return "Real" if prediction == 1 else "Fake"
+
+# Streamlit UI
+st.title("Fake News Detection")
+st.write("Enter news text to check if it's Fake or Real.")
+
+news_input = st.text_area("News Text", height=200)
+
+if st.button("Predict"):
+    if news_input:
+        prediction = predict_news(news_input)
+        st.subheader("Prediction:")
+        st.success("This news is likely Real.") if prediction == "Real" else st.error("This news is likely Fake.")
+    else:
+        st.warning("Please enter news text to get a prediction.")
