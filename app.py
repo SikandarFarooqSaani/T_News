@@ -1,8 +1,8 @@
+import os
 import streamlit as st
 import torch
-import os
 import zipfile
-import gdown  # Use gdown to correctly download from Google Drive
+import gdown
 from transformers import GPT2Tokenizer, GPT2ForSequenceClassification
 
 # Model download settings
@@ -13,7 +13,7 @@ MODEL_ZIP = "saved_model.zip"
 # Download and extract the model if not present
 if not os.path.exists(MODEL_DIR):
     st.info("Downloading model... Please wait ⏳")
-    gdown.download(MODEL_URL, MODEL_ZIP, quiet=False)  # Use gdown to download correctly
+    gdown.download(MODEL_URL, MODEL_ZIP, quiet=False)
 
     # Extract model
     with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
@@ -22,33 +22,18 @@ if not os.path.exists(MODEL_DIR):
     os.remove(MODEL_ZIP)
     st.success("Model downloaded successfully ✅")
 
+# 🔴 **DEBUG: Print extracted files**
+st.write("Extracted Files:", os.listdir(MODEL_DIR))
+
+# 🔴 **DEBUG: Check if model.safetensors exists**
+if not os.path.exists(os.path.join(MODEL_DIR, "model.safetensors")):
+    st.error("❌ model.safetensors is missing! Check your ZIP file.")
+
 # Load the model and tokenizer
-model = GPT2ForSequenceClassification.from_pretrained(MODEL_DIR)
-tokenizer = GPT2Tokenizer.from_pretrained(MODEL_DIR)
-model.config.pad_token_id = tokenizer.pad_token_id
-
-# Prediction function
-def predict_news(news_text):
-    inputs = tokenizer(news_text, truncation=True, padding="max_length", max_length=512, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-        logits = outputs.logits
-        prediction = torch.argmax(logits, dim=1).item()
-    return "Real" if prediction == 1 else "Fake"
-
-# Streamlit App
-st.title("Fake News Detection")
-st.write("Enter news text to check if it's Fake or Real.")
-
-news_input = st.text_area("News Text", height=200)
-
-if st.button("Predict"):
-    if news_input:
-        prediction = predict_news(news_input)
-        st.subheader("Prediction:")
-        if prediction == "Real":
-            st.success("This news is likely Real.")
-        else:
-            st.error("This news is likely Fake.")
-    else:
-        st.warning("Please enter news text to get a prediction.")
+try:
+    model = GPT2ForSequenceClassification.from_pretrained(MODEL_DIR)
+    tokenizer = GPT2Tokenizer.from_pretrained(MODEL_DIR)
+    model.config.pad_token_id = tokenizer.pad_token_id
+    st.success("Model loaded successfully ✅")
+except Exception as e:
+    st.error(f"❌ Model failed to load: {str(e)}")
