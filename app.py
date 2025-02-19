@@ -2,7 +2,7 @@ import streamlit as st
 import torch
 import os
 import zipfile
-import requests
+import gdown  # Use gdown to correctly download from Google Drive
 from transformers import GPT2Tokenizer, GPT2ForSequenceClassification
 
 # Model download settings
@@ -13,11 +13,9 @@ MODEL_ZIP = "saved_model.zip"
 # Download and extract the model if not present
 if not os.path.exists(MODEL_DIR):
     st.info("Downloading model... Please wait ⏳")
-    response = requests.get(MODEL_URL, stream=True)
-    with open(MODEL_ZIP, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-    
+    gdown.download(MODEL_URL, MODEL_ZIP, quiet=False)  # Use gdown to download correctly
+
+    # Extract model
     with zipfile.ZipFile(MODEL_ZIP, "r") as zip_ref:
         zip_ref.extractall(MODEL_DIR)
 
