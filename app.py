@@ -13,7 +13,17 @@ def load_model():
     model.config.pad_token_id = tokenizer.pad_token_id
     st.success("Model loaded successfully ✅")
     return model, tokenizer
-
+# Project Information
+st.sidebar.title("📌 Project Details")
+st.sidebar.markdown("**Project:** Fake News Detector")  
+st.sidebar.markdown("**Model: ** Transformers") 
+st.sidebar.markdown("**Institute:** University of Management and Technology")  
+st.sidebar.markdown("**Advisor:** Muhammad Asim Butt")  
+st.sidebar.markdown("**Group Members:**")  
+st.sidebar.markdown("- Sikandar Farooq")  
+st.sidebar.markdown("- Musfira Rabia Ramzan")  
+st.sidebar.markdown("- Abdullah Rehman")  
+st.sidebar.markdown("- Mariyum Iftikhar")  
 # Load model once
 model, tokenizer = load_model()
 
